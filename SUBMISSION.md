@@ -5,6 +5,7 @@
 - [ ] Frontend deployed with `NEXT_PUBLIC_API_BASE_URL`.
 - [ ] Public demo URL tested from a clean browser, both live and replay.
 - [ ] Repo public, `LICENSE` at root, README renders.
+- [ ] Push `examples/vulnerable-demo` to its own GitHub repo. Set `GITHUB_TOKEN` (fine-grained, contents + pull requests on that repo only) and `GITHUB_PR_ALLOWED_OWNERS=<your user>` on the backend.
 - [ ] Video under 3 minutes, narrated, uploaded to YouTube (public).
 - [ ] `FEEDBACK.md` pasted into the feedback field.
 
@@ -23,10 +24,14 @@
 - **Matrix:** "Every passing patch also has to beat the other branches' exploits."
 - **Cost KPI:** "Seven Nemotron calls: under a fifth of a cent."
 
-**1:45–2:30 Failure recovery**
+**1:45–2:15 Failure recovery**
 
 Run the PyJWT preset. Show the repair round, then escalation to Ultra, then either a verified patch or the "No patch proposed" banner. "It never ships an unverified patch."
 
-**2:30–2:50 Close**
+**2:15–2:35 Real repo to PR**
+
+Paste the demo repo URL, run CVE-2007-4559, then click **Open Draft PR**. Show the PR on GitHub with the patch, the new regression test, and the evidence in the description.
+
+**2:35–2:50 Close**
 
 Show the LoRA panel uploading the verified dataset to Token Factory (real file ID). Then: replay mode works for judges without keys; MIT licensed; repo link.

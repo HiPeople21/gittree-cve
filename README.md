@@ -12,6 +12,8 @@ Dependabot-style tools bump a version string and hope the build survives. Single
 
 If nothing survives, the run escalates to Nemotron Ultra (up to 2 attempts) with every branch's sandbox output. When a catalog was validated, it becomes the escalation's regression test, so the model only has to make proven exploits fail. On CVE-2007-4559 this reliably produces `tar.extractall(dest, filter="data")`, the standard fix. If that fails too, the run ends with **"no patch proposed"** rather than a guess.
 
+**Real repositories in, draft PRs out.** Paste a public GitHub repo URL. GitTree-CVE imports its Python sources and dependencies (read in memory, never extracted to disk), runs the pipeline against the project's own test suite, and can open a **draft PR**. The PR contains the verified patch, a regression test file, and a body citing the evidence: sandbox exit codes, attack-catalog results, the audit score and the advisory constraints. A PR can only carry a patch this server verified (looked up by `run_id`), and only for repo owners on `GITHUB_PR_ALLOWED_OWNERS`. [`examples/vulnerable-demo`](examples/vulnerable-demo) is a ready-made target.
+
 Track: **Coding & Agentic Engineering**. Tavily integration targets the **Best Use of Tavily** bonus.
 
 ## Architecture
@@ -54,7 +56,8 @@ Every model call is logged with its Token Factory completion ID, token usage and
 | Fixed attack payload templates + adapter contract | [`gittree-cve-backend/app/attack_catalog.py`](gittree-cve-backend/app/attack_catalog.py) |
 | Pipeline, audit veto, cost ledger, run recording | [`gittree-cve-backend/app/orchestrator.py`](gittree-cve-backend/app/orchestrator.py) |
 | Token Factory post-training (`/v1/files`, `/v1/fine_tuning/jobs`) | [`gittree-cve-backend/app/post_training.py`](gittree-cve-backend/app/post_training.py) |
-| Rate limiting, SSE API, GitHub import | [`gittree-cve-backend/app/main.py`](gittree-cve-backend/app/main.py) |
+| GitHub repo import (budgeted, in-memory) and draft PRs | [`gittree-cve-backend/app/github_repo.py`](gittree-cve-backend/app/github_repo.py) |
+| Rate limiting, SSE API, PR endpoint (verified runs only) | [`gittree-cve-backend/app/main.py`](gittree-cve-backend/app/main.py) |
 | Zero-key replay of recorded runs | [`gittree-cve-backend/app/replay_fixtures.py`](gittree-cve-backend/app/replay_fixtures.py), [`gittree-cve-backend/data/recorded_runs/`](gittree-cve-backend/data/recorded_runs/) |
 | Dashboard | [`gittree-cve-frontend/app/page.tsx`](gittree-cve-frontend/app/page.tsx) |
 
@@ -105,7 +108,7 @@ The UI labels every branch with the backend that ran it.
 cd gittree-cve-backend && .venv/bin/python -m pytest -q
 ```
 
-26 tests, all offline: the phase-A classifier, the two-phase gate, a path-traversal guard, the ConTree REST client against a mock of the documented API, the Docker backend (skipped without a daemon), router helpers, the attack-catalog templates (they must exploit vulnerable code, catch a naive `..` check, and pass on correct fixes), and the API (SSRF guard, replay, rate-limit and concurrency fallback).
+29 tests, all offline: the phase-A classifier, the two-phase gate, a path-traversal guard, the ConTree REST client against a mock of the documented API, the Docker backend (skipped without a daemon), router helpers, the attack-catalog templates (they must exploit vulnerable code, catch a naive `..` check, and pass on correct fixes), GitHub URL parsing and the draft-PR flow against a mock GitHub API (allowlist, verified-runs-only, exact API sequence), and the API (SSRF guard, replay, rate-limit and concurrency fallback).
 
 ### Deploy
 

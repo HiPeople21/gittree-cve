@@ -1,2 +1,4 @@
 # Windows download metadata
 *:Zone.Identifier
+__pycache__/
+*.pyc
