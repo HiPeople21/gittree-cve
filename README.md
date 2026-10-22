@@ -7,9 +7,10 @@ Dependabot-style tools bump a version string and hope the build survives. Single
 1. **Phase A:** the candidate's regression test must *fail* on the unpatched code. Tests that pass on vulnerable code, or only fail because the test itself is broken (`NameError`, import or collection errors), are rejected.
 2. **Phase B:** the patched code plus the full existing suite must *pass*. Existing test files are read-only to the models.
 3. **Cross-validation:** each passing patch also runs against every *other* branch's exploit test (including tests from branches whose own patch failed). Only tests that some patch satisfies are counted, so a disputed spec doesn't count against a patch.
-4. **Audit:** Nemotron Super scores each verified patch against constraints extracted from live advisories, sees the cross-validation results, and can veto a patch that still allows the attack.
+4. **Fixed attack catalog:** for known classes (path traversal, SQL injection), deterministic payloads written as code, not by a model, are run against the unpatched code. Every payload that succeeds there must be blocked by the patch. A model only writes a two-function adapter that binds the payloads to the repo's API. This is what catches fixes that pass their own test but still have a hole: in CVE-2007-4559, a `'..' in name` check blocks plain `../` but misses symlink and hardlink members.
+5. **Audit:** Nemotron Super scores each verified patch against constraints extracted from live advisories, sees the cross-validation and catalog results, and can veto a patch that still allows the attack.
 
-If nothing survives, the run escalates to Nemotron Ultra with every branch's sandbox output. If that fails too, the run ends with **"no patch proposed"** rather than a guess.
+If nothing survives, the run escalates to Nemotron Ultra (up to 2 attempts) with every branch's sandbox output. When a catalog was validated, it becomes the escalation's regression test, so the model only has to make proven exploits fail. On CVE-2007-4559 this reliably produces `tar.extractall(dest, filter="data")`, the standard fix. If that fails too, the run ends with **"no patch proposed"** rather than a guess.
 
 Track: **Coding & Agentic Engineering**. Tavily integration targets the **Best Use of Tavily** bonus.
 
@@ -50,6 +51,7 @@ Every model call is logged with its Token Factory completion ID, token usage and
 | Docker fallback with the same checkpoint/branch model (`docker commit`, `--network none`, no capabilities) | [`gittree-cve-backend/app/docker_sandbox.py`](gittree-cve-backend/app/docker_sandbox.py) |
 | Nemotron tier routing (Lightning planner, Nano fan-out + repair, Super audit, Ultra escalation), JSON mode, reasoning toggles | [`gittree-cve-backend/app/nemotron_router.py`](gittree-cve-backend/app/nemotron_router.py) |
 | Tavily Search + Extract | [`gittree-cve-backend/app/tavily_intel.py`](gittree-cve-backend/app/tavily_intel.py) |
+| Fixed attack payload templates + adapter contract | [`gittree-cve-backend/app/attack_catalog.py`](gittree-cve-backend/app/attack_catalog.py) |
 | Pipeline, audit veto, cost ledger, run recording | [`gittree-cve-backend/app/orchestrator.py`](gittree-cve-backend/app/orchestrator.py) |
 | Token Factory post-training (`/v1/files`, `/v1/fine_tuning/jobs`) | [`gittree-cve-backend/app/post_training.py`](gittree-cve-backend/app/post_training.py) |
 | Rate limiting, SSE API, GitHub import | [`gittree-cve-backend/app/main.py`](gittree-cve-backend/app/main.py) |
@@ -103,7 +105,7 @@ The UI labels every branch with the backend that ran it.
 cd gittree-cve-backend && .venv/bin/python -m pytest -q
 ```
 
-21 tests, all offline: the phase-A classifier, the two-phase gate, a path-traversal guard, the ConTree REST client against a mock of the documented API, the Docker backend (skipped without a daemon), router helpers, and the API (SSRF guard, replay, rate-limit fallback).
+26 tests, all offline: the phase-A classifier, the two-phase gate, a path-traversal guard, the ConTree REST client against a mock of the documented API, the Docker backend (skipped without a daemon), router helpers, the attack-catalog templates (they must exploit vulnerable code, catch a naive `..` check, and pass on correct fixes), and the API (SSRF guard, replay, rate-limit and concurrency fallback).
 
 ### Deploy
 
@@ -115,7 +117,7 @@ cd gittree-cve-backend && .venv/bin/python -m pytest -q
 
 - **ConTree:** the integration follows the documented REST API and is tested against a schema-faithful mock. The project's Sandboxes permissions are still pending activation, so the recorded runs used the Docker backend, and their transcripts say so.
 - **Nemotron post-training:** Nemotron models are not on Token Factory's fine-tunable list. The flywheel uploads verified examples as a real Token Factory dataset and targets `Qwen/Qwen3-Coder-30B-A3B-Instruct` (LoRA-capable). Job launch is gated behind `LORA_ENABLE_JOB_LAUNCH` and `LORA_MIN_EXAMPLES` because it spends credits.
-- **Verification limits:** verification is only as strong as the generated regression test plus the auditor. Example: a `'..' in name` check for CVE-2007-4559 passes but does not cover symlink tricks.
+- **Verification limits:** outside the classes with a fixed attack catalog, verification is only as strong as the generated tests, cross-validation and the auditor.
 
 ## License
 

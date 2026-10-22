@@ -18,8 +18,9 @@
 
 - **Tavily panel:** "Live advisories decided this run: the vulnerability class picked the strategies, severity picked three branches, and these constraints went into every prompt and the audit."
 - **Branch cards:** they fill in live as each finishes. "Each candidate runs in two network-disabled sandboxes forked from one checkpoint. Phase A must fail on vulnerable code; Phase B must pass the full suite." Point at a *Trivial Test Rejected* card and a "+ repair" card.
-- **Matrix:** "Every passing patch also has to beat the other branches' exploits." Point at the struck-out column (an unsatisfiable test, excluded).
-- **Super audit:** "Super vetoes patches that pass tests but still allow the attack." Show a branch scored 40/100.
+- **Attack catalog (the key moment):** "Two patches passed their own tests. Then the fixed attack catalog ran: plain `../` blocked, but the symlink and hardlink payloads got through. Both were vetoed." Point at the MISSED cells.
+- **Escalation:** "The proven exploits become the escalation's test. Super's answer is `filter='data'`, Python's built-in safe extraction, and every payload is blocked."
+- **Matrix:** "Every passing patch also has to beat the other branches' exploits."
 - **Cost KPI:** "Seven Nemotron calls: under a fifth of a cent."
 
 **1:45–2:30 Failure recovery**
