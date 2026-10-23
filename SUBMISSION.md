@@ -1,6 +1,6 @@
 # Submission checklist (deadline Oct 30, 2026, 10:00 AM PT)
 
-- [ ] ConTree activated for the project (`/api/health` shows `"spawn": true`). Then re-record `data/recorded_runs/*.json` with `SANDBOX_BACKEND=contree` so replays show real ConTree image UUIDs. Docker-backed recordings are already in place as the fallback.
+- [x] ConTree activated for the project (`/api/health` shows `"spawn": true`). All three presets and the demo repo are re-recorded live on ConTree.
 - [ ] Backend deployed (Dockerfile) with `ALLOW_LOCAL_SANDBOX=false`, `ALLOWED_ORIGINS`, `TRUST_PROXY_HEADERS=true`.
 - [ ] Frontend deployed with `NEXT_PUBLIC_API_BASE_URL`.
 - [ ] Public demo URL tested from a clean browser, both live and replay.

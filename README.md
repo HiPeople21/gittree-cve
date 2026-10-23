@@ -108,7 +108,7 @@ The UI labels every branch with the backend that ran it.
 cd gittree-cve-backend && .venv/bin/python -m pytest -q
 ```
 
-29 tests, all offline: the phase-A classifier, the two-phase gate, a path-traversal guard, the ConTree REST client against a mock of the documented API, the Docker backend (skipped without a daemon), router helpers, the attack-catalog templates (they must exploit vulnerable code, catch a naive `..` check, and pass on correct fixes), GitHub URL parsing and the draft-PR flow against a mock GitHub API (allowlist, verified-runs-only, exact API sequence), and the API (SSRF guard, replay, rate-limit and concurrency fallback).
+30 tests, all offline: the phase-A classifier, the two-phase gate, a path-traversal guard, the ConTree REST client against a mock of the documented API, the Docker backend (skipped without a daemon), router helpers, the attack-catalog templates (they must exploit vulnerable code, catch a naive `..` check, and pass on correct fixes), GitHub URL parsing and the draft-PR flow against a mock GitHub API (allowlist, verified-runs-only, exact API sequence), and the API (SSRF guard, replay, recordings keyed by CVE and code, rate-limit and concurrency fallback).
 
 ### Deploy
 
@@ -118,7 +118,7 @@ cd gittree-cve-backend && .venv/bin/python -m pytest -q
 
 ## Honest status
 
-- **ConTree:** the integration follows the documented REST API and is tested against a schema-faithful mock. The project's Sandboxes permissions are still pending activation, so the recorded runs used the Docker backend, and their transcripts say so.
+- **ConTree:** all recorded runs in `data/recorded_runs/` are live ConTree runs (image import, checkpoint chaining, network-disabled forks). Each recording is keyed by CVE and a hash of the code, so a run on other code never replaces a preset's replay. Runs that end with no patch are recorded too (the PyJWT preset is one), and replays show them as they happened. The offline tests also cover the REST client against a mock of the documented API.
 - **Nemotron post-training:** Nemotron models are not on Token Factory's fine-tunable list. The flywheel uploads verified examples as a real Token Factory dataset and targets `Qwen/Qwen3-Coder-30B-A3B-Instruct` (LoRA-capable). Job launch is gated behind `LORA_ENABLE_JOB_LAUNCH` and `LORA_MIN_EXAMPLES` because it spends credits.
 - **Verification limits:** outside the classes with a fixed attack catalog, verification is only as strong as the generated tests, cross-validation and the auditor.
 
