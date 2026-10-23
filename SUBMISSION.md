@@ -13,25 +13,25 @@
 
 **0:00–0:30 Problem and live result**
 
-"Dependabot bumps versions; coding agents guess. Neither proves the fix works." Pick CVE-2007-4559, press Run, and let the branch tree fill in on screen.
+"Dependabot bumps versions; coding agents guess. Neither proves the fix works." Pick CVE-2007-4559, press **Run case**, and let the fork lanes fill in on screen.
 
 **0:30–1:45 Architecture, narrated over the live telemetry**
 
 - **Tavily panel:** "Live advisories decided this run: the vulnerability class picked the strategies, severity picked three branches, and these constraints went into every prompt and the audit."
-- **Branch cards:** they fill in live as each finishes. "Each candidate runs in two network-disabled sandboxes forked from one checkpoint. Phase A must fail on vulnerable code; Phase B must pass the full suite." Point at a *Trivial Test Rejected* card and a "+ repair" card.
-- **Attack catalog (the key moment):** "Two patches passed their own tests. Then the fixed attack catalog ran: plain `../` blocked, but the symlink and hardlink payloads got through. Both were vetoed." Point at the MISSED cells.
+- **Fork lanes:** each lane advances through the gates as its sandbox finishes. "Each candidate runs in two network-disabled sandboxes copied from one checkpoint. Its exploit test must fail on the vulnerable code, then the patched code must pass the full suite." Point at a lane that stops at *Exploit reproduced* ("its test already passes on the vulnerable code") and at a "+ repair" lane.
+- **Attack catalog (the key moment):** "Two patches passed their own tests. Then the fixed attack catalog ran: plain `../` blocked, but the symlink and hardlink payloads got through. Both were vetoed." Point at the red *missed* cells and at the lanes that stop at *Attacks blocked*. Live runs vary: if no fork is vetoed this time, run it again or narrate the lane that did fail.
 - **Escalation:** "The proven exploits become the escalation's test. Super's answer is `filter='data'`, Python's built-in safe extraction, and every payload is blocked."
-- **Matrix:** "Every passing patch also has to beat the other branches' exploits."
-- **Cost KPI:** "Seven Nemotron calls: under a fifth of a cent."
+- **Cross-check:** "Every passing patch also has to beat the other forks' exploit tests."
+- **Spend, under the verdict:** read the real number off the screen ("ten Nemotron calls, a fifth of a cent").
 
 **1:45–2:15 Failure recovery**
 
-Run the PyJWT preset. Show the repair round, then escalation to Ultra, then either a verified patch or the "No patch proposed" banner. "It never ships an unverified patch."
+Run the PyJWT preset. Show the repair round, then escalation to Ultra, then either a verified patch or the red "No patch proposed" verdict, with each lane ending at the check it failed. "It never ships an unverified patch."
 
 **2:15–2:35 Real repo to PR**
 
-Paste the demo repo URL, run CVE-2007-4559, then click **Open Draft PR**. Show the PR on GitHub with the patch, the new regression test, and the evidence in the description.
+Paste the demo repo URL, run CVE-2007-4559, then open the **Pull request** tab and click **Open draft PR on owner/repo**. Show the PR on GitHub with the patch, the new regression test, and the evidence in the description.
 
 **2:35–2:50 Close**
 
-Show the LoRA panel uploading the verified dataset to Token Factory (real file ID). Then: replay mode works for judges without keys; MIT licensed; repo link.
+In **Training data**, click **Upload dataset** to send the verified examples to Token Factory (real file ID). Then: replay mode works for judges without keys; MIT licensed; repo link.

@@ -2,6 +2,8 @@
 
 **Speculative, sandbox-verified CVE remediation on Nebius Token Factory + NVIDIA Nemotron.**
 
+![GitTree-CVE replaying a recorded ConTree run of CVE-2007-4559: three forks, two rejected at the check they failed, one verified and selected](docs/screenshot.png)
+
 Dependabot-style tools bump a version string and hope the build survives. Single-threaded coding agents mutate one working tree and can't prove their fix works. GitTree-CVE generates several candidate patches in parallel, forks one network-disabled ConTree VM per candidate from an immutable checkpoint, and only proposes a patch that is **proven to fix the exploit**:
 
 1. **Phase A:** the candidate's regression test must *fail* on the unpatched code. Tests that pass on vulnerable code, or only fail because the test itself is broken (`NameError`, import or collection errors), are rejected.
@@ -32,7 +34,7 @@ Track: **Coding & Agentic Engineering**. Tavily integration targets the **Best U
    ▼        ▼         ▼         ▼
  fork A   fork B    fork C    ...      each fork = 2 VM operations, networking.enabled=false:
  (Phase A disposable / Phase B retained)   unpatched+test must FAIL, patched+suite must PASS
-   │        │         │                     (branch cards stream to the UI as each finishes)
+   │        │         │                     (fork lanes stream to the UI as each finishes)
    └── failed branches: 1 Nano repair round with their own stdout/stderr
             │
   cross-validation matrix: every passing patch x every satisfiable exploit test
@@ -59,7 +61,7 @@ Every model call is logged with its Token Factory completion ID, token usage and
 | GitHub repo import (budgeted, in-memory) and draft PRs | [`gittree-cve-backend/app/github_repo.py`](gittree-cve-backend/app/github_repo.py) |
 | Rate limiting, SSE API, PR endpoint (verified runs only) | [`gittree-cve-backend/app/main.py`](gittree-cve-backend/app/main.py) |
 | Zero-key replay of recorded runs | [`gittree-cve-backend/app/replay_fixtures.py`](gittree-cve-backend/app/replay_fixtures.py), [`gittree-cve-backend/data/recorded_runs/`](gittree-cve-backend/data/recorded_runs/) |
-| Dashboard | [`gittree-cve-frontend/app/page.tsx`](gittree-cve-frontend/app/page.tsx) |
+| Dashboard | [`gittree-cve-frontend/app/page.tsx`](gittree-cve-frontend/app/page.tsx), fork lanes in [`case-tree.tsx`](gittree-cve-frontend/app/case-tree.tsx) |
 
 ## How Tavily changes execution (not just context)
 
@@ -79,7 +81,7 @@ The Lightning planner turns Tavily results into a structured plan, and determini
 cd gittree-cve-backend && ./demo.sh
 ```
 
-This replays a recorded real run of CVE-2007-4559. The UI's **Zero-Key Judge Replay Mode** checkbox does the same, and live runs fall back to replay automatically when keys are missing, a rate limit is hit, or an API fails. Replays are labeled as such, and the built-in fixture is used only for CVEs that have no recording; its IDs are prefixed `fixture-`.
+This replays a recorded real run of CVE-2007-4559. The UI's **Replay a recorded run** checkbox does the same, and live runs fall back to replay automatically when keys are missing, a rate limit is hit, or an API fails. Replays are labeled as such, and the built-in fixture is used only for CVEs that have no recording; its IDs are prefixed `fixture-`.
 
 ### Live
 
@@ -100,7 +102,7 @@ npm install && npm run dev
 2. **Docker:** containers with `--network none`, all capabilities dropped and memory/CPU/PID limits. They share the host kernel, so this is weaker than a VM.
 3. **Local:** only with `ALLOW_LOCAL_SANDBOX=true`. Runs on your machine, with only a network namespace (`unshare --net`) when the kernel allows it. Never enable it on a public deployment.
 
-The UI labels every branch with the backend that ran it.
+The UI shows the backend that ran the case under the verdict, and each fork's sandbox image and network interfaces in its detail view.
 
 ### Tests
 
