@@ -120,7 +120,7 @@ cd gittree-cve-backend && .venv/bin/python -m pytest -q
 
 ## Honest status
 
-- **ConTree:** all recorded runs in `data/recorded_runs/` are live ConTree runs (image import, checkpoint chaining, network-disabled forks). Each recording is keyed by CVE and a hash of the code, so a run on other code never replaces a preset's replay. Runs that end with no patch are recorded too (the PyJWT preset is one), and replays show them as they happened. The offline tests also cover the REST client against a mock of the documented API.
+- **ConTree:** all recorded runs in `data/recorded_runs/` are live ConTree runs (image import, checkpoint chaining, network-disabled forks). Each recording is keyed by CVE and a hash of the code, so a run on other code never replaces a preset's replay. Runs that end with no patch are recorded too, and replays show them as they happened. The offline tests also cover the REST client against a mock of the documented API.
 - **Nemotron post-training:** Nemotron models are not on Token Factory's fine-tunable list. The flywheel uploads verified examples as a real Token Factory dataset and targets `Qwen/Qwen3-Coder-30B-A3B-Instruct` (LoRA-capable). Job launch is gated behind `LORA_ENABLE_JOB_LAUNCH` and `LORA_MIN_EXAMPLES` because it spends credits.
 - **Verification limits:** outside the classes with a fixed attack catalog, verification is only as strong as the generated tests, cross-validation and the auditor.
 

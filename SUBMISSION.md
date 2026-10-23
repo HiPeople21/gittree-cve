@@ -26,7 +26,7 @@
 
 **1:45–2:15 Failure recovery**
 
-Run the PyJWT preset. Show the repair round, then escalation to Ultra, then either a verified patch or the red "No patch proposed" verdict, with each lane ending at the check it failed. "It never ships an unverified patch."
+Run the CWE-347 (JWT) preset — a verifier with signature checking disabled. The catalog's four forged-token payloads (attacker-signed, alg:none, HS256, tampered claims) all reproduce, and every Nano fork's cheap patch is vetoed for missing them — each lane ends at the check it failed. Escalation to Super then produces `verify_signature=True`, which blocks all four (audit 95/100) → verified. "When nothing qualifies, the verdict is a red 'No patch proposed' — it never ships an unverified patch."
 
 **2:15–2:35 Real repo to PR**
 
