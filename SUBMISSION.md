@@ -1,11 +1,11 @@
 # Submission checklist (deadline Oct 30, 2026, 10:00 AM PT)
 
 - [x] ConTree activated for the project (`/api/health` shows `"spawn": true`). All three presets and the demo repo were re-recorded live on ConTree on Oct 24.
-- [ ] Backend deployed (Dockerfile) with `ALLOW_LOCAL_SANDBOX=false`, `ALLOWED_ORIGINS`, `TRUST_PROXY_HEADERS=true`.
+- [ ] Backend deployed: `docker build gittree-cve-backend`. The image already sets `ALLOW_LOCAL_SANDBOX=false`, `TRUST_PROXY_HEADERS=true` and `RECORD_LIVE_RUNS=false`. Set `ALLOWED_ORIGINS` to the frontend origin, and `TRUSTED_PROXY_HOPS` to the number of proxies in front that append to `X-Forwarded-For` (default 1; with no proxy, set `TRUST_PROXY_HEADERS=false` instead).
 - [ ] Frontend deployed with `NEXT_PUBLIC_API_BASE_URL`.
 - [ ] Public demo URL tested from a clean browser, both live and replay.
 - [ ] Repo public, `LICENSE` at root, README renders.
-- [ ] Push `examples/vulnerable-demo` to its own GitHub repo. Set `GITHUB_TOKEN` (fine-grained, contents + pull requests on that repo only) and `GITHUB_PR_ALLOWED_OWNERS=<your user>` on the backend. A draft PR has not been opened end to end yet: do one before recording.
+- [ ] Push `examples/vulnerable-demo` to its own GitHub repo. Set `GITHUB_TOKEN` (fine-grained, contents + pull requests on that repo only) and `GITHUB_PR_ALLOWED_OWNERS=<your user>` on the backend. A draft PR has not been opened end to end yet: do one before recording. Only a run on the unedited import gets a PR (the server binds the run to the import), and imports are kept in memory, so re-import after a backend restart.
 - [ ] Video under 3 minutes, narrated, uploaded to YouTube (public).
 - [ ] `FEEDBACK.md` pasted into the feedback field.
 
@@ -37,7 +37,7 @@ Pick the CWE-347 preset (replay still ticked), press **Run case**.
 
 **1:40–2:30 Real repo to pull request (live)**
 
-Paste the demo repo URL, press **Import**, untick **Replay a recorded run**, press **Run case**. Cut the wait in editing.
+Paste the demo repo URL, press **Import**, untick **Replay a recorded run**, press **Run case**. Cut the wait in editing. Don't edit the imported files first: a run on edited files gets no draft PR.
 
 - Narrate the lanes as they finish. If every Nano fork fails, the run escalates: "the attack catalog becomes the escalation's regression test". In an earlier recorded run of this repo, every Nano fork failed and Super's escalation, `filter='data'`, blocked all four payloads; in the current recording, three forks were rescued by the re-check instead.
 - On the verified fork, open the **Pull request** tab and click **Open draft PR on owner/repo**. Show the PR on GitHub: the patch, the regression test file, and the evidence in the description.
