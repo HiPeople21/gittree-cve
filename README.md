@@ -53,7 +53,7 @@ Only a failure before the fan-out (the Tavily search, the planner call), or an u
 
 **Real repositories in, draft PRs out.** Paste a public GitHub repo URL. GitTree-CVE imports its Python sources and dependencies (read in memory, never extracted to disk), including `-r` includes, `-e .[extras]` and the pytest plugins it declares (each kept only if pytest still starts with it), and runs the pipeline against the project's own test suite. It can then open a **draft PR** containing:
 - the verified patch;
-- a regression test file;
+- a regression test file, placed where the repository's own pytest config collects it;
 - a body citing the evidence: sandbox exit codes, attack-catalog results (or why the catalog did not apply), the audit score, the advisory constraints, and any pre-existing failures that were not counted against the patch.
 
 A PR can only carry a patch this server verified (looked up by `run_id`), and only for repo owners on `GITHUB_PR_ALLOWED_OWNERS`. Where it goes is the server's record of the import, never the browser's say-so: only a run on exactly the files, test command and requirements the server imported can open one, so editing any of them makes the run PR-less. The PR carries exactly the files the sandbox verified, and its branch starts at the imported commit, so its diff is the patch alone. It never replaces an upstream file the import skipped. Each run opens at most one PR, and a PR that fails part-way removes its branch. The PR's description states the sandbox's real network state, and model-written text in it can't mention people, link or inject HTML. [`examples/vulnerable-demo`](examples/vulnerable-demo) is a ready-made target.
@@ -100,7 +100,7 @@ Every model call is logged with its Token Factory completion ID, token usage and
 | ConTree REST: image import, `POST /v1/instances`, operation polling, `networking.enabled=false`, retained vs disposable runs, guest-NIC probe, phase-A classification, Phase B integrity, cross-checks | [`gittree-cve-backend/app/contree_client.py`](gittree-cve-backend/app/contree_client.py) |
 | Docker fallback with the same checkpoint/branch model (`docker commit`, `--network none`, no capabilities) | [`gittree-cve-backend/app/docker_sandbox.py`](gittree-cve-backend/app/docker_sandbox.py) |
 | What a patch may change | [`gittree-cve-backend/app/patch_policy.py`](gittree-cve-backend/app/patch_policy.py) |
-| Nemotron tier routing (Lightning planner, Nano fan-out + repair + catalog adapter, Super audit, Ultra escalation), JSON mode, reasoning toggles | [`gittree-cve-backend/app/nemotron_router.py`](gittree-cve-backend/app/nemotron_router.py) |
+| Nemotron tier routing (Lightning planner, Nano fan-out + repair + catalog adapter, Super audit, Ultra escalation), JSON mode, reasoning off on every tier | [`gittree-cve-backend/app/nemotron_router.py`](gittree-cve-backend/app/nemotron_router.py) |
 | Tavily Search + Extract | [`gittree-cve-backend/app/tavily_intel.py`](gittree-cve-backend/app/tavily_intel.py) |
 | Fixed attack payloads, legitimate-use controls, probe checks, adapter contract | [`gittree-cve-backend/app/attack_catalog.py`](gittree-cve-backend/app/attack_catalog.py) |
 | Pipeline, catalog gate, re-check, audit veto, cost ledger, run recording | [`gittree-cve-backend/app/orchestrator.py`](gittree-cve-backend/app/orchestrator.py) |
@@ -160,7 +160,7 @@ cd gittree-cve-backend && .venv/bin/python -m pytest -q
 cd ../gittree-cve-frontend && npm test
 ```
 
-The backend has 1000 tests, all offline (one, for the Docker backend, is skipped when no Docker daemon is running). They cover:
+The backend has 1098 tests, all offline (one, for the Docker backend, is skipped when no Docker daemon is running). They cover:
 - the phase-A classifier (failed checks and crashes in the code the patch changes, run with real pytest, including tests that fail every other way) and Phase B integrity checks, including repositories whose pytest config adds `-q`, `-x`, `--color=yes`, `--tb=no` or options pytest cannot start with, or narrows collection with `testpaths` (globs too) or `python_files`;
 - pre-existing failures: only environmental failures the unpatched suite shares are excused, never the repository's own failing test of the vulnerability;
 - the patch policy, with each blocked vector run through the real gate, including shadow copies of the code under test in nested packages, mirrored layouts and `pythonpath` directories;
@@ -172,7 +172,7 @@ The backend has 1000 tests, all offline (one, for the Docker backend, is skipped
 - GitHub URL parsing, the importer (decompression and entry-count caps, `-r` includes) and the draft-PR flow against a mock GitHub API (allowlist, verified-runs-only, runs bound to unedited imports, the branch starting at the imported commit, path checks, exact API sequence);
 - the API: request validation, SSRF guard, replay, recordings keyed by CVE and code, NO_RECORDING, per-visitor limits behind proxies, rate-limit and concurrency fallback.
 
-The frontend's 34 tests (Node's built-in runner, no extra dependencies) drive the real dashboard against scripted backend answers. They cover the server's audit threshold, import binding, refused runs and cut streams, pre-existing failures, and runs where the audit, a model call, a sandbox run or the base checkpoint failed. They also check the backend's deploy files.
+The frontend's 41 tests (Node's built-in runner, no extra dependencies) drive the real dashboard against scripted backend answers. They cover the server's audit threshold, import binding, refused runs and cut streams, pre-existing failures, and runs where the audit, a model call, a sandbox run or the base checkpoint failed. They also check the backend's deploy files.
 
 ### Deploy
 
@@ -194,7 +194,7 @@ The frontend's 34 tests (Node's built-in runner, no extra dependencies) drive th
 - **Live runs vary.** What Tavily returns and how the models sample change the outcome. Across our live runs on Oct 24 (while the code was still changing), the CVE-2007-4559 preset was verified in 2 of 6 runs and the demo repo in 3 of 4; the CWE-347 and CWE-89 presets were verified in all 5 runs each. The tarfile runs were verified when a patch used `tarfile`'s `filter='data'`. Patches with manual path checks blocked `..` but missed symlink and hardlink members; the catalog vetoed them, and those runs ended with "no patch proposed".
 - **Nemotron post-training:** Nemotron models are not on Token Factory's fine-tunable list. The flywheel uploads verified examples as a real Token Factory dataset and targets `Qwen/Qwen3-Coder-30B-A3B-Instruct` (LoRA-capable).
   - Only winners verified with their own model-written regression test become examples. A winner verified with the attack catalog is not added, since its test was not model output.
-  - Job launch is gated behind `LORA_ENABLE_JOB_LAUNCH` and `LORA_MIN_EXAMPLES` because it spends credits.
+  - Job launch is gated behind `LORA_ENABLE_JOB_LAUNCH` and `LORA_MIN_EXAMPLES` because it spends credits. With launch enabled, `POST /api/lora/trigger` also needs `Authorization: Bearer $LORA_TRIGGER_TOKEN` (an empty token disables it), and one launch runs at a time.
 - **Verification limits:**
   - Outside the three catalog classes, verification is only as strong as the generated tests, cross-validation and the auditor.
   - The JWT catalog's legitimate-use control is an RS256 token verified with a PEM public key, so it fits RS256 verifiers. A correct fix to an HS256-only verifier, or one that newly requires `iss`/`aud`, is vetoed by the control (fails closed). A verifier that doesn't return the claims as a mapping makes the catalog unusable (discarded, with the reason shown).
